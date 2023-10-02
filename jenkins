@@ -1,0 +1,68 @@
+pipeline {
+    agent any
+    stages {
+        stage('Build') {
+            steps {
+                // Use the appropriate build tool and commands here
+                sh 'mvn clean package' // Example for Maven
+            }
+        }
+
+        stage('Unit and Integration Tests') {          
+            steps {
+                // Run unit and integration tests
+                sh 'mvn test' // Example for Maven
+            }
+        }
+
+        stage('Code Analysis') {
+            steps {
+                // Run code analysis using SonarQube
+                sh 'sonar-scanner' // Example for SonarQube
+            }
+        }
+
+        stage('Security Scan') {
+            steps {
+                // Run security scan using OWASP Dependency-Check
+                sh 'dependency-check -s ./target' // Example for OWASP Dependency-Check
+            }
+        }
+
+        stage('Deploy to Staging') {
+            steps {
+                // Use the appropriate deployment tool and commands here
+                sh 'aws deploy create-deployment --application-name MyApp --deployment-group-name StagingGroup --s3-location s3://your-bucket/app.zip' // Example for AWS CodeDeploy
+            }
+        }
+
+        stage('Integration Tests on Staging') {
+            steps {
+                // Run integration tests on the staging environment
+                sh 'mvn integration-test' // Example for Maven
+            }
+        }
+
+        stage('Deploy to Production') {
+            steps {
+                // Use the appropriate deployment tool and commands here
+                sh 'aws deploy create-deployment --application-name MyApp --deployment-group-name ProductionGroup --s3-location s3://your-bucket/app.zip' // Example for AWS CodeDeploy
+            }
+        }
+    }
+
+    post {
+        failure {
+            // Send email notification on pipeline failure
+            emailext subject: 'Pipeline Failed',
+                body: "The Jenkins pipeline for your project has failed. Please check the build logs for more details.",
+                to: 'suhaandevg@gmail.com'
+        }
+        success {
+            // Send email notification on pipeline success
+            emailext subject: 'Pipeline Succeeded',
+                body: "The Jenkins pipeline for your project has succeeded.",
+                to: 'suhaandevg@gmail.com'
+        }
+    }
+}
